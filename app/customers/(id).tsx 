@@ -1,0 +1,4 @@
+//pantalla de detalles del cliente
+//se bede acceder al id
+
+import {CustomerView} from 
