@@ -4,9 +4,15 @@ export default function AuthLayout() {
   return (
     <Stack
       screenOptions={{
-        headerShown: true,
-        title: "Autenticación",
+        headerShown: false, 
+        animation: "slide_from_right",
+        contentStyle: {
+          backgroundColor: "#0a0a0a", 
+        },
       }}
-    />
+    >
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+    </Stack>
   );
 }
