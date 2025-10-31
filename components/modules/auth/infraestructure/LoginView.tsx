@@ -19,7 +19,7 @@ export function LoginView() {
   const [loading, setLoading] = useState(false);
 
   // URL del backend (ajústala según tu entorno)
-  const API_URL = "http://192.168.1.17:3000/auth/login";
+  const API_URL = process.env.API_URL + "auth/login";
 
   const handleLogin = async () => {
     if (!username || !password) {
