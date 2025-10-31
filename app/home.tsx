@@ -5,9 +5,6 @@ export default function Home() {
   return (
     <View className="flex-1 items-center justify-center bg-white">
       <Text className="text-xl font-semibold mb-4">Bienvenido a tu agenda médica</Text>
-
-      <Button title="Ver Doctores" onPress={() => router.push("/patient/searchdoctors")} />
-      <Button title="Mis Citas" onPress={() => router.push("/citas/miscitas")} />
       <Button title="Perfil" onPress={() => router.push("/patient/profile")} />
     </View>
   );
