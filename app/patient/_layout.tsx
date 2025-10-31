@@ -1,12 +1,8 @@
+
 import { Stack } from "expo-router";
 
 export default function PatientLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: true,
-        title: "Paciente",
-      }}
-    />
+    <Stack screenOptions={{ headerShown: false }} />
   );
 }
