@@ -1,7 +1,7 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "@/components/context/AuthContext";
 import axios from "axios";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -12,47 +12,16 @@ import {
 } from "react-native";
 
 export default function DoctorProfileView() {
-  const [userId, setUserId] = useState<number | null>(null);
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [age, setAge] = useState("");
+  const { user, token } = useAuth(); 
   const [consultationAmount, setConsultationAmount] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const API_URL = "http://192.168.1.17:3000/doctors/register"; // <-- Corrige aquí si tu endpoint es distinto
-
-  useEffect(() => {
-    const loadDoctorData = async () => {
-      try {
-        const id = await AsyncStorage.getItem("id");
-        const storedName = await AsyncStorage.getItem("name");
-        const storedEmail = await AsyncStorage.getItem("email");
-        const storedAge = await AsyncStorage.getItem("age");
-
-        if (!id) {
-          Alert.alert(
-            "Error",
-            "No se encontró el ID del usuario. Inicia sesión nuevamente."
-          );
-          router.replace("/auth/login");
-          return;
-        }
-
-        setUserId(Number(id));
-        setName(storedName || "");
-        setEmail(storedEmail || "");
-        setAge(storedAge || "");
-      } catch (error) {
-        console.error("Error al cargar datos del doctor:", error);
-      }
-    };
-
-    loadDoctorData();
-  }, []);
+  const API_URL = "http://192.168.1.17:3000/doctors/register";
 
   const handleSaveProfile = async () => {
-    if (!userId) {
-      Alert.alert("Error", "No se encontró el ID del usuario.");
+    if (!user?.id) {
+      Alert.alert("Error", "No se encontró el ID del usuario. Inicia sesión nuevamente.");
+      router.replace("/auth/login");
       return;
     }
 
@@ -63,31 +32,22 @@ export default function DoctorProfileView() {
 
     try {
       setLoading(true);
-      const token = await AsyncStorage.getItem("token");
-
-      if (!token) {
-        Alert.alert("Error", "Token no encontrado. Inicia sesión nuevamente.");
-        return;
-      }
 
       const response = await axios.post(
         API_URL,
         {
-          user_id: userId,
+          user_id: user.id,
           consultationAmount: Number(consultationAmount),
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}` }, // 👈 token desde el context
         }
       );
 
       Alert.alert("Éxito", "Perfil de doctor guardado correctamente.");
       router.replace("/doctor/dashboard");
     } catch (error: any) {
-      console.error(
-        "Error al guardar perfil del doctor:",
-        error.response?.data || error
-      );
+      console.error("Error al guardar perfil del doctor:", error.response?.data || error);
       Alert.alert(
         "Error",
         error.response?.data?.message || "No se pudo guardar el perfil."
@@ -99,14 +59,14 @@ export default function DoctorProfileView() {
 
   return (
     <ScrollView contentContainerStyle={style.container}>
-      <Text style={style.title}>Hola Dr. {name} 👋</Text>
+      <Text style={style.title}>Hola Dr. {user?.name || "Usuario"} 👋</Text>
       <Text style={style.subtitle}>Actualiza tu información profesional</Text>
 
       <TextInput
         placeholder="Correo electrónico"
         placeholderTextColor="#aaa"
         style={style.input}
-        value={email}
+        value={user?.email || ""}
         editable={false}
       />
 
@@ -114,7 +74,7 @@ export default function DoctorProfileView() {
         placeholder="Edad"
         placeholderTextColor="#aaa"
         style={style.input}
-        value={age}
+        value={user?.age?.toString() || ""}
         editable={false}
       />
 
