@@ -1,12 +1,14 @@
+import { useAuth } from "@/components/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React from "react";
 import { SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function DashboardView() {
+  const { user } = useAuth();
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* 🔵 Barra superior con buscador e ícono de perfil */}
       <View style={styles.navbar}>
         <TextInput
           placeholder="Buscar servicios médicos..."
@@ -18,9 +20,8 @@ export default function DashboardView() {
         </TouchableOpacity>
       </View>
 
-      {/* Contenido central */}
       <View style={styles.body}>
-        <Text style={styles.text}>Bienvenido Paciente 🩺</Text>
+        <Text style={styles.text}>Bienvenido {user?.name || "Paciente"} 🩺</Text>
       </View>
     </SafeAreaView>
   );

@@ -1,3 +1,4 @@
+import { useAuth } from "@/components/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { router } from "expo-router";
@@ -13,58 +14,65 @@ import {
   View,
 } from "react-native";
 
+
 export function LoginView() {
   const [username, setUsername] = useState(""); // ← Cambié el nombre para mayor claridad
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const { setUser, setToken } = useAuth();
+
 
   const API_URL = "http://192.168.1.17:3000/auth/login";
 
   const handleLogin = async () => {
-    if (!username || !password) {
-      Alert.alert("Error", "Por favor ingresa tu correo y contraseña.");
-      return;
+  if (!username || !password) {
+    Alert.alert("Error", "Por favor ingresa tu correo y contraseña.");
+    return;
+  }
+
+  setLoading(true);
+
+  try {
+    const response = await axios.post(API_URL, {
+      username,
+      password,
+    });
+
+    const { access_token, user } = response.data;
+
+    console.log("🔑 Token recibido:", access_token);
+    console.log("👤 Usuario:", user);
+
+    // ✅ Guarda token y usuario en AsyncStorage
+    await AsyncStorage.setItem("token", access_token);
+    await AsyncStorage.setItem("user", JSON.stringify(user));
+
+    // ✅ Actualiza el contexto (importante)
+    setToken(access_token);
+    setUser(user);
+
+    // 🚦 Redirección según el rol
+    if (user.roleId === 1) {
+      router.replace("/doctor/dashboard");
+    } else if (user.roleId === 2) {
+      router.replace("/patient/dashboard");
+    } else {
+      Alert.alert("Error", "Rol de usuario no válido.");
     }
 
-    setLoading(true);
+  } catch (error: any) {
+    console.error("Error al iniciar sesión:", error.response?.data || error);
 
-    try {
-      const response = await axios.post(API_URL, {
-        username,
-        password,
-      });
-
-      const { access_token, user } = response.data;
-
-      console.log("🔑 Token recibido:", access_token);
-      console.log("👤 Usuario:", user);
-
-      // ✅ Guarda token y ID como strings
-      await AsyncStorage.setItem("token", access_token);
-      await AsyncStorage.setItem("id", user.id.toString());
-      await AsyncStorage.setItem("name", user.name); 
-      
-      // 🚦 Redirección según el rol
-      if (user.roleId === 1) {
-        router.replace("/doctor/dashboard");
-      } else if (user.roleId === 2) {
-        router.replace("/patient/dashboard");
-      } else {
-        Alert.alert("Error", "Rol de usuario no válido.");
-      }
-
-    } catch (error: any) {
-      console.error("Error al iniciar sesión:", error.response?.data || error);
-
-      if (error.response?.status === 401) {
-        Alert.alert("Error", "Usuario o contraseña incorrectos.");
-      } else {
-        Alert.alert("Error", "No se pudo iniciar sesión. Inténtalo de nuevo.");
-      }
-    } finally {
-      setLoading(false);
+    if (error.response?.status === 401) {
+      Alert.alert("Error", "Usuario o contraseña incorrectos.");
+    } else {
+      Alert.alert("Error", "No se pudo iniciar sesión. Inténtalo de nuevo.");
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
